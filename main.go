@@ -13,19 +13,17 @@ import (
 	"github.com/jstemmer/go-junit-report/formatter"
 )
 
-type CSSPrinter struct {
+type Printer struct {
+	Type string `arg:"" help:"Type of resource to print." name:"css|html" enum:"css,html"`
 }
 
-func (c *CSSPrinter) Run(cxt *kong.Context) error {
-	fmt.Println(styles)
-	return nil
-}
-
-type HTML struct {
-}
-
-func (h *HTML) Run(cxt *kong.Context) error {
-	fmt.Println(report)
+func (p *Printer) Run(ctx *kong.Context) error {
+	switch p.Type {
+	case "css":
+		fmt.Println(styles)
+	case "html":
+		fmt.Println(templateData)
+	}
 	return nil
 }
 
@@ -37,10 +35,8 @@ func (g *Generator) Run(ctx *kong.Context) error {
 	defer g.JunitXML.Close()
 	ctx.FatalIfErrorf(xml.NewDecoder(g.JunitXML).Decode(&suites))
 	tmplCtx := struct {
-		Suites      []formatter.JUnitTestSuite
-		NumFailures int
-		NumTotal    int
-		CSS         template.CSS
+		Suites []formatter.JUnitTestSuite
+		CSS    template.CSS
 	}{
 		Suites: suites.Suites,
 		CSS:    template.CSS(styles),
@@ -50,10 +46,6 @@ func (g *Generator) Run(ctx *kong.Context) error {
 		spew.Dump(suites)
 	}
 
-	for _, s := range suites.Suites {
-		tmplCtx.NumFailures += s.Failures
-		tmplCtx.NumTotal += len(s.TestCases)
-	}
 	return tmpl.Execute(os.Stdout, tmplCtx)
 }
 
@@ -61,16 +53,12 @@ var (
 	//go:embed style.css
 	styles string
 	//go:embed report.gohtml
-	report string
-	tmpl   = template.Must(template.New("report").Funcs(sprig.FuncMap()).Parse(report))
-	suites formatter.JUnitTestSuites
-	cfg    struct {
-		Debug bool `short:"v" long:"debug" description:"Show debug information"`
-		Print struct {
-			// Make this a dumper with args
-			CSS  CSSPrinter `cmd:"css" help:"Print the embedded CSS"`
-			HTML HTML       `cmd:"html" help:"Print the embedded HTML"`
-		} `cmd:"print" help:"Print the embedded resources"`
+	templateData string
+	tmpl         = template.Must(template.New("report").Funcs(sprig.FuncMap()).Parse(templateData))
+	suites       formatter.JUnitTestSuites
+	cfg          struct {
+		Debug    bool      `short:"v" long:"debug" description:"Show debug information"`
+		Print    Printer   `cmd:"print" help:"Print an embedded resource"`
 		Generate Generator `cmd:"generate" help:"Generate a report from the input XML"`
 	}
 )

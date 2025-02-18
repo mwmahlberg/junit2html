@@ -1,3 +1,27 @@
+{{- define "numTotal" -}}
+{{- $total := 0 -}}
+{{- with .Suites -}}
+{{- range . -}}
+{{- $total = add $total (len .TestCases) -}}
+{{- end -}}
+{{- $total -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "numFailed" -}}
+{{- $total := 0 -}}
+{{- with .Suites -}}
+{{- range . -}}
+{{- $total = add $total .Failures -}}
+{{- end -}}
+{{- $total -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "results" -}}
+ <p>{{template "numFailed" . }} of {{template "numTotal" . }} tests failed</p>
+{{- end -}}
+
 {{ define "coverage" }}
   {{- with .Properties -}}
   {{- range . -}}
@@ -52,9 +76,6 @@
 {{- end -}}
 {{- end -}}
 
-{{ define "skippedtests"}}
-{{- end -}}
-
 {{ define "report" }}
 <!DOCTYPE html>
 <html lang="en">
@@ -67,8 +88,8 @@
   </style>
 </head>
 <body>
-  <p>{{ .NumFailures }} of {{ .NumTotal }} tests failed</p>
-  {{- with .Suites -}}
+  {{ template "results" . }}
+  {{ with .Suites -}}
   {{- range . -}}
   {{- if gt .Failures 0 -}}
   <h4>
