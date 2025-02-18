@@ -57,7 +57,7 @@ var (
 	tmpl         = template.Must(template.New("report").Funcs(sprig.FuncMap()).Parse(templateData))
 	suites       formatter.JUnitTestSuites
 	cfg          struct {
-		Debug    bool      `short:"v" long:"debug" description:"Show debug information"`
+		Debug    bool      `short:"d" long:"debug" description:"Show debug information"`
 		Print    Printer   `cmd:"print" help:"Print an embedded resource"`
 		Generate Generator `cmd:"generate" help:"Generate a report from the input XML"`
 	}
