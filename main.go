@@ -13,11 +13,11 @@ import (
 	"github.com/jstemmer/go-junit-report/formatter"
 )
 
-type Printer struct {
+type printer struct {
 	Type string `arg:"" help:"Type of resource to print." name:"css|html" enum:"css,html"`
 }
 
-func (p *Printer) Run(ctx *kong.Context) error {
+func (p *printer) Run(ctx *kong.Context) error {
 	switch p.Type {
 	case "css":
 		fmt.Println(styles)
@@ -27,11 +27,11 @@ func (p *Printer) Run(ctx *kong.Context) error {
 	return nil
 }
 
-type Generator struct {
+type generator struct {
 	JunitXML *os.File `arg:"" help:"Path to the JUnit XML file to generate a report from. use '-' for stdin."`
 }
 
-func (g *Generator) Run(ctx *kong.Context) error {
+func (g *generator) Run(ctx *kong.Context) error {
 	defer g.JunitXML.Close()
 	ctx.FatalIfErrorf(xml.NewDecoder(g.JunitXML).Decode(&suites))
 	tmplCtx := struct {
@@ -58,8 +58,8 @@ var (
 	suites       formatter.JUnitTestSuites
 	cfg          struct {
 		Debug    bool      `short:"d" long:"debug" description:"Show debug information"`
-		Print    Printer   `cmd:"print" help:"Print an embedded resource"`
-		Generate Generator `cmd:"generate" help:"Generate a report from the input XML"`
+		Print    printer   `cmd:"print" help:"Print an embedded resource"`
+		Generate generator `cmd:"generate" help:"Generate a report from the input XML"`
 	}
 )
 
