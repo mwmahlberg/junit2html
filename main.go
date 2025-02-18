@@ -18,7 +18,7 @@ type printer struct {
 	Type string `arg:"" help:"Type of resource to print." name:"css|html" enum:"css,html"`
 }
 
-func (p *printer) Run(ctx context) error {
+func (p *printer) Run(ctx *context) error {
 	switch p.Type {
 	case "css":
 		fmt.Println(defaultStyles)
