@@ -1,0 +1,95 @@
+{{ define "coverage" }}
+  {{- with .Properties -}}
+  {{- range . -}}
+  {{- if hasPrefix "coverage." .Name -}}
+  <span class='coverage' title='{{- .Name -}}'>{{- printf "%.0f%%" ( .Value | float64) -}}</span>
+  {{- end -}} {{/* if coverage */}}
+  {{- end -}} {{/* range */}}
+  {{- end -}} {{/* with */}}
+{{- end -}}
+
+{{ define "test" }}
+  {{- $failed := not (empty .Failure) -}}
+  {{- $skipped := not (empty .SkipMessage) -}}
+  {{- $passed := and (not $failed) (not $skipped) -}}
+  {{- $class := $passed | ternary "passed" ($failed | ternary "failed" "skipped" ) -}}
+  {{- $text := $passed | ternary "Pass" ($failed | ternary "Fail" "Skip" )}}
+  <div class='{{ $class }}' id='{{.Classname}}.{{.Name}}'>
+    <a href='#{{.Classname}}.{{.Name}}'>{{.Name}} <span class='badge'>{{ $text }}</span></a>
+    <div class='expando'>
+      {{- if not $passed -}}
+      <div class='content'>
+        {{- if $failed -}}
+        {{ .Failure.Contents }}
+        {{- else if $skipped -}}
+        {{ .SkipMessage.Message }}
+        {{- end -}}
+      </div>
+      {{- end -}}
+      <p class='duration' title='Test duration'>{{.Time | duration }}</p>
+    </div>
+  </div>
+{{ end }}
+
+{{ define "failedtests" }}
+{{- with .TestCases -}}
+{{- range . -}}
+{{- if not (empty .Failure) -}}
+{{- template "test" . -}}
+{{- end -}} 
+{{- end -}} 
+{{- end }} 
+{{ end }} 
+
+
+{{ define "passedtests"}}
+{{- with .TestCases -}}
+{{- range . -}}
+{{- if empty .Failure -}}
+{{- template "test" . -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{ define "skippedtests"}}
+{{- end -}}
+
+{{ define "report" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    {{ .CSS }}
+  </style>
+</head>
+<body>
+  <p>{{ .NumFailures }} of {{ .NumTotal }} tests failed</p>
+  {{- with .Suites -}}
+  {{- range . -}}
+  {{- if gt .Failures 0 -}}
+  <h4>
+  {{ .Name }}
+  {{- template "coverage" .}}
+  </h4>
+  {{- template "failedtests" . -}}
+  {{- end -}} {{/* if */}}
+  {{- end -}} {{/* range */}}
+  {{- end -}} {{/* with */}}
+
+  {{- with .Suites -}}
+  {{- range . }}
+  <h4>
+    Passed: {{ .Name }}
+    {{ template "coverage" .}}
+  </h4>
+  {{- template "passedtests" . }}
+  {{- end -}}
+  {{- end -}}
+
+</body>
+</html>
+{{ end }}
