@@ -1,4 +1,4 @@
-module github.com/alexec/junit2html
+module github.com/mwmahlberg/junit2html
 
 go 1.21
 
